@@ -143,4 +143,9 @@ class TelegramBotIntegrationTest implements WithAssertions {
         verify(postRequestedFor(urlPathTemplate("/bot{token}/getUpdates"))
                 .withPathParam("token", equalTo(telegramProperties.getToken())));
     }
+
+    @Test
+    void helpCommandSendsListOfCommands() throws InterruptedException {
+
+    }
 }
