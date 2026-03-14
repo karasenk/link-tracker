@@ -6,15 +6,15 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class TelegramConfiguration {
     @Autowired
-    ApplicationContext applicationContext;
+    List<MagicBotCommand> commands;
 
     @Bean
     public TelegramBot telegramBot(TelegramProperties properties) {
@@ -28,20 +28,20 @@ public class TelegramConfiguration {
         TelegramBot bot = builder.build();
         bot.setUpdatesListener(updates -> {
             for (Update update : updates) {
-                String answerText = "Команда не найдена. Используйте /help чтобы узнать список доступных команд.";
                 if (update.message() != null
                         && update.message().text() != null
                         && update.message().text().startsWith("/")) {
                     long chatId = update.message().chat().id();
-                    String messageText = update.message().text();
-                    for (String commandName : applicationContext.getBeanNamesForType(MagicBotCommand.class)) {
-                        if (commandName.equals(messageText)) {
-                            MagicBotCommand command = applicationContext.getBean(messageText, MagicBotCommand.class);
-                            answerText = command.process();
+                    SendMessage sendMessage = new SendMessage(
+                            chatId, "Команда не найдена. Используйте /help чтобы узнать список доступных команд.");
+                    String messageText = update.message().text().toLowerCase();
+
+                    for (MagicBotCommand botCommand : commands) {
+                        if (botCommand.getCommand().getName().equals(messageText.split(" ")[0])) {
+                            sendMessage = botCommand.process(update);
                             break;
                         }
                     }
-                    SendMessage sendMessage = new SendMessage(chatId, answerText);
                     bot.execute(sendMessage);
                 }
             }

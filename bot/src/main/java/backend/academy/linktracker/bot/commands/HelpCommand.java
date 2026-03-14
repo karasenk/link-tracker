@@ -1,32 +1,34 @@
 package backend.academy.linktracker.bot.commands;
 
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-@Component("/help")
-public class HelpCommand extends MagicBotCommand {
-    @Autowired
-    private ApplicationContext applicationContext;
+@Component
+public class HelpCommand implements MagicBotCommand {
+    public static final Command COMMAND = Command.HELP;
 
-    public static final String DESCRIPTION = "Вывод списка доступных команд";
+    @Autowired
+    List<MagicBotCommand> botCommands;
 
     @Override
-    public String process() {
+    public SendMessage process(Update update) {
+        long chatId = update.message().chat().id();
         StringBuilder messageText = new StringBuilder();
-        for (String commandName : applicationContext.getBeanNamesForType(MagicBotCommand.class)) {
-            MagicBotCommand command = applicationContext.getBean(commandName, MagicBotCommand.class);
+        for (MagicBotCommand botCommand : botCommands) {
             messageText
-                    .append(commandName)
+                    .append(botCommand.getCommand().getName())
                     .append(" - ")
-                    .append(command.description())
+                    .append(botCommand.getCommand().getDescription())
                     .append("\n");
         }
-        return messageText.toString();
+        return new SendMessage(chatId, messageText.toString());
     }
 
     @Override
-    public String description() {
-        return DESCRIPTION;
+    public Command getCommand() {
+        return COMMAND;
     }
 }

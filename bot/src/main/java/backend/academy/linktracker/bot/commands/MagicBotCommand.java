@@ -1,7 +1,10 @@
 package backend.academy.linktracker.bot.commands;
 
-public abstract class MagicBotCommand {
-    public abstract String process();
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 
-    public abstract String description();
+public interface MagicBotCommand {
+    public SendMessage process(Update update);
+
+    public Command getCommand();
 }
