@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class HelpCommand implements MagicBotCommand {
-    public static final Command COMMAND = Command.HELP;
 
     @Autowired
     List<MagicBotCommand> botCommands;
@@ -19,16 +18,16 @@ public class HelpCommand implements MagicBotCommand {
         StringBuilder messageText = new StringBuilder();
         for (MagicBotCommand botCommand : botCommands) {
             messageText
-                    .append(botCommand.getCommand().getName())
-                    .append(" - ")
-                    .append(botCommand.getCommand().getDescription())
-                    .append("\n");
+                .append(botCommand.getCommand().getName())
+                .append(" - ")
+                .append(botCommand.getCommand().getDescription())
+                .append("\n");
         }
         return new SendMessage(chatId, messageText.toString());
     }
 
     @Override
     public Command getCommand() {
-        return COMMAND;
+        return Command.HELP;
     }
 }
