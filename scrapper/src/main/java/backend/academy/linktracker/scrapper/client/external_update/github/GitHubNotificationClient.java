@@ -3,6 +3,7 @@ package backend.academy.linktracker.scrapper.client.external_update.github;
 import backend.academy.linktracker.scrapper.client.external_update.ExternalUpdateClient;
 import backend.academy.linktracker.scrapper.dto.GitHubNotification;
 import backend.academy.linktracker.scrapper.dto.Notification;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -17,7 +18,7 @@ public class GitHubNotificationClient {
     private RestTemplate restTemplate;
 
     public List<GitHubNotification> getNotifications(String link) {
-        ResponseEntity<List<GitHubNotification>> response =
+        ResponseEntity<@NotNull List<GitHubNotification>> response =
             restTemplate.exchange(
                 link,
                 HttpMethod.GET,

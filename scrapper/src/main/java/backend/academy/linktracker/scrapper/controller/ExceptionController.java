@@ -3,6 +3,7 @@ package backend.academy.linktracker.scrapper.controller;
 import backend.academy.linktracker.scrapper.dto.response.ApiErrorResponse;
 import backend.academy.linktracker.scrapper.exception.ChatAlreadyExistsException;
 import backend.academy.linktracker.scrapper.exception.ChatNotFoundException;
+import backend.academy.linktracker.scrapper.exception.IncorrectLinkException;
 import backend.academy.linktracker.scrapper.exception.LinkAlreadyExistsException;
 import backend.academy.linktracker.scrapper.exception.LinkNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,18 @@ public class ExceptionController {
         );
         logAPIError(error);
         return ResponseEntity.status(404).body(error);
+    }
+    @ExceptionHandler(IncorrectLinkException.class)
+    public ResponseEntity<@NotNull ApiErrorResponse> handleIncorrectLinkException(Exception ex){
+        ApiErrorResponse error = new ApiErrorResponse(
+            "Некорректный формат ссылки",
+            "400",
+            IncorrectLinkException.class.getName(),
+            ex.getMessage(),
+            Arrays.stream(ex.getStackTrace()).map(StackTraceElement::toString).toList()
+        );
+        log.atError().log(ex.getMessage());
+        return ResponseEntity.internalServerError().body(error);
     }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<@NotNull ApiErrorResponse> handleUnexpectedException(Exception ex){

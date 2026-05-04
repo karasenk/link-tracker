@@ -5,9 +5,7 @@ import backend.academy.linktracker.scrapper.client.external_update.ExternalUpdat
 import backend.academy.linktracker.scrapper.client.external_update.github.GitHubUpdateClient;
 import backend.academy.linktracker.scrapper.client.external_update.stackoverflow.StackOverflowUpdateClient;
 import backend.academy.linktracker.scrapper.dto.Notification;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,11 +13,11 @@ import java.util.regex.Pattern;
 
 @Service
 public class UpdateAggregatorService {
-    private static final Pattern GITHUB_PATTERN = Pattern.compile(
+    public static final Pattern GITHUB_PATTERN = Pattern.compile(
         "^https://github\\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)(/.*)?$"
     );
 
-    private static final Pattern STACKOVERFLOW_PATTERN = Pattern.compile(
+    public static final Pattern STACKOVERFLOW_PATTERN = Pattern.compile(
         "^https://stackoverflow\\.com/questions/(\\d+)(/.*)?$"
     );
 

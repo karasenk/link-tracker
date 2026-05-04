@@ -52,7 +52,7 @@ public class UpdatesListenerImpl implements UpdatesListener {
         String messageText = update.message().text().strip();
         beforeCommandHandle(chatId, messageText);
 
-        String command = update.message().text().strip();
+        String command = update.message().text().strip().split(" ")[0];
         return Command.fromText(command)
             .flatMap(registry::find)
             .map(processor -> processor.process(update))

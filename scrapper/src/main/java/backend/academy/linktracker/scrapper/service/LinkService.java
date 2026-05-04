@@ -5,8 +5,10 @@ import backend.academy.linktracker.scrapper.dto.request.RemoveLinkRequest;
 import backend.academy.linktracker.scrapper.dto.response.LinkResponse;
 import backend.academy.linktracker.scrapper.dto.response.ListLinksResponse;
 import backend.academy.linktracker.scrapper.exception.ChatNotFoundException;
+import backend.academy.linktracker.scrapper.exception.IncorrectLinkException;
 import backend.academy.linktracker.scrapper.exception.LinkAlreadyExistsException;
 import backend.academy.linktracker.scrapper.exception.LinkNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -16,7 +18,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static backend.academy.linktracker.scrapper.service.UpdateAggregatorService.GITHUB_PATTERN;
+import static backend.academy.linktracker.scrapper.service.UpdateAggregatorService.STACKOVERFLOW_PATTERN;
+
 @Service
+@Slf4j
 public class LinkService {
     @Autowired
     private ChatService chatService;
@@ -41,7 +47,16 @@ public class LinkService {
         if (exists(chatId, request.getLink())){
             throw new LinkAlreadyExistsException(request.getLink());
         }
-
+        if (!GITHUB_PATTERN.matcher(request.getLink()).matches() &&
+            !STACKOVERFLOW_PATTERN.matcher(request.getLink()).matches()){
+            throw new IncorrectLinkException(
+                request.getLink(),
+                List.of(
+                    GITHUB_PATTERN.pattern(),
+                    STACKOVERFLOW_PATTERN.pattern()
+                )
+                );
+        }
         List<LinkResponse> linkList = linkRepository.computeIfAbsent(chatId, id -> new ArrayList<>());
         LinkResponse link = LinkResponse.builder()
             .url(request.getLink())
@@ -51,6 +66,7 @@ public class LinkService {
             .build();
 
         linkList.add(link);
+        log.info("Link {} for user {} added", link.getUrl(), chatId);
         return link;
     }
 

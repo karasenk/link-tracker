@@ -9,7 +9,7 @@ public class ClientConfig {
     @Bean
     public RestClient scrapperRestClient() {
         return RestClient.builder()
-            .baseUrl("http://localhost:8080")
+            .baseUrl("http://localhost:8081")
             .build();
     }
 }

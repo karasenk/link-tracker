@@ -5,6 +5,9 @@ import backend.academy.linktracker.bot.dto.request.RemoveLinkRequest;
 import backend.academy.linktracker.bot.dto.response.ApiErrorResponse;
 import backend.academy.linktracker.bot.dto.response.LinkResponse;
 import backend.academy.linktracker.bot.dto.response.ListLinksResponse;
+import backend.academy.linktracker.bot.state.State;
+import backend.academy.linktracker.bot.state.UserSession;
+import backend.academy.linktracker.bot.state.UserStateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -13,6 +16,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -20,6 +24,9 @@ import java.util.List;
 public class ScrapperClient {
     @Autowired
     private RestClient restClient;
+
+    @Autowired
+    UserStateService userStateService;
 
     public LinkResponse addLink(Long chatId, String link, List<String> tags) {
         AddLinkRequest request = new AddLinkRequest(link, tags, List.of());
@@ -30,7 +37,9 @@ public class ScrapperClient {
             .retrieve()
             .onStatus(
                 HttpStatusCode::isError,
-                (_, resp) -> {handleError(resp, "addLink");})
+                (_, resp) -> {
+                    userStateService.resetSession(chatId);
+                    handleError(resp, "addLink");})
             .body(LinkResponse.class);
     }
 
@@ -43,7 +52,8 @@ public class ScrapperClient {
             .retrieve()
             .onStatus(
                 HttpStatusCode::isError,
-                (_, resp) -> {handleError(resp, "removeLink");});
+                (_, resp) -> {handleError(resp, "removeLink");})
+            .toBodilessEntity();
     }
 
     public ListLinksResponse getLinks(Long chatId) {
@@ -63,7 +73,8 @@ public class ScrapperClient {
             .retrieve()
             .onStatus(
                 HttpStatusCode::isError,
-                (_, resp) -> {handleError(resp, "registerChat");});
+                (_, resp) -> {handleError(resp, "registerChat");})
+            .toBodilessEntity();
     }
 
     public void deleteChat(Long chatId) {
@@ -76,16 +87,18 @@ public class ScrapperClient {
             .toBodilessEntity();
     }
     private void handleError(ClientHttpResponse response, String funcName) {
-        ApiErrorResponse error = null;
         try {
-            error = new ObjectMapper().readValue(
+            ApiErrorResponse error = new ObjectMapper().readValue(
                 response.getBody(),
                 ApiErrorResponse.class
             );
+            throw new ScrapperApiException(error, funcName);
 
-        } catch (Exception ex) {
-            log.error("Failed to parse ApiErrorResponse", ex);
+        } catch (IOException ex) {
+            log.atError()
+                .addKeyValue("message", ex.getMessage())
+                .addKeyValue("class", ex.getClass())
+                .log("Failed to parse ApiErrorResponse");
         }
-        throw new ScrapperApiException(error, funcName);
     }
 }
